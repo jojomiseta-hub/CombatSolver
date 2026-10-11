@@ -1,62 +1,55 @@
 # CombatSolver 测试入口
 
-按改动选择最小验证层，方法见 [无人测试](HEADLESS_TESTING.md) 与 [社区验收](community/testing-guide.md)。以下命令提供当前复跑入口，不表示本轮已执行。
+2026-10-07 PR #227–#230 的本机 `SMART-POTION-AUDIT-BUDGET`、旧报告、GC 合同，以及 O068 和固定哨兵整场部署通过。O056 最终与当前主线同为 62 战损，历史界 42 未达成；组件证明合同被 native-version 门禁拒绝。最小复跑入口、同根对照、失败及未验证范围见[整合验证](archive/testing/pr-integration-20261007.md)。
 
-历史记录见 [归档索引](archive/testing/README.md)，0.48.1 的验证、失败与未验证项见 [历史卷 12](archive/testing/volume-12.md)。
+贡献者 2026-10-06 的 Linux [计划续搜完整胜利证明](performance/plan-witness-propagation-20261006.md)：原生计划循环与最终 GC 合同 Passed；政策门禁、16 Fork、DOP1/16 实际成员派发与一次压缩完整回收通过，实例清理。11 根 44 次纯交错质量及峰值通过；2 次完整诊断、9 次根审计单列。未做全29根、上传包或可见性能，历史战损差异保留。
 
-0.49.0 的行为验证沿用本页 PR #203、#204 合并验收与 [战斗状态修复验证](archive/testing/volume-13.md)。版本及发布文档调整采用 L0 检查和发布构建；原有未验证项保留。
+0.50.0 定稿沿用 PR #207、PR #211 与开局药水准入的既有行为证据，来源和范围见 [历史卷 20](archive/testing/volume-20.md)。
 
-## PR #206 上游同步（2026-10-04）
+按改动选择最小验证层，方法见 [无人测试](HEADLESS_TESTING.md) 与 [社区验收](community/testing-guide.md)。以下命令提供当前复跑入口，不表示本轮已执行。单人共享损血剪枝的新基线验证见[策略证据](strategy/hp-loss-pruning/README.md#单人共享损血剪枝2026-10-05)。
 
-合并 `387863d0` / 0.49.2 后，`bf2ae1f1` 的 Release 构建零警告/错误；初次 .NET 6 命令失败，显式使用既有 .NET 9 SDK 后成功。本轮仅处理三处文档冲突并进行 L0 集成检查，没有重跑原生恢复、整场或性能样本；Q003 的历史合同和整场数字仍归属下列原始源码，24/26请求额度未变化。
+历史记录见 [归档索引](archive/testing/README.md)，0.48.1 的验证、失败与未验证项见 [历史卷 12](archive/testing/volume-12.md)。Q003 / PR #206 的 0.49.2 修复、失败实验、五主题缺口和 2026-10-11 上游整合验证见[当前补全记录](issues/q003-completion-20261004.md)，此前十阶段见[历史记录](issues/q003-checkpoint-policy-20261003.md)；旧构建及中途根不表示当前全批验收，PR 仍为 Draft / Refs #183。
 
-## Q003 补全验收（2026-10-04）
+PR #213 的贡献者分阶段验证见 [Q002 历史入口](issues/q002-route-quality.md#0494-重新验证2026-10-05)。当前 0.50.0 主线整合使用 O003、O004、O005 同根、同政策对照，结果与复跑预算见 [当前验收](issues/q002-route-quality.md#0500-主线整合2026-10-05)。
 
-本轮记录见 [当前五主题矩阵、请求来源及继续条件](issues/q003-completion-20261004.md)。`CheckpointTool self-test` 60 项通过，新增合同验证目标检查点不借用未来政策。最终保留的 Release 构建 `final-monitored` 零警告/错误，药水实验已撤回，既有相同输入成功构建复用。
+## Ctrl+F9 面板可见性（PR #226）
 
-最终保路候选的 O010 T1 与当前同版基线均 39 HP / 无药 / 重算 0，完整原生根、动作、质量、成长和 27 项政策精确相同；T2 为 32 HP / 已记录锻造祝福一瓶 / 重算 0。O008 合法 T2 根自主原生战损 53 / 已记录 SWIFT_POTION 一瓶 / 重算 0。最终源码的 O006 药后游标 4 原生 0 HP / 已记录 FORTIFIER 一瓶 / 重算 0，完整原生状态及 Continuation 对账通过，记录政策与 27 项实际搜索政策均 `includeTurnSetup=false`，不借用未来游标 6。中途根不证明 combat_start 全场自主验收；本轮单次耗时也不替代旧三对性能或最终成对验收。
+快捷键、新图层、重置和监控合同的通过、失败与可见验证范围见[历史卷21](archive/testing/volume-21.md#ctrlf9-面板可见性pr-226)。
 
-O009 66 HP 合法参照的 T2 完整 Continuation 已对账，精确第 3 步被 Beam 淘汰；改动后的 88 HP 退化候选撤回。O006 0 HP / 三瓶原生结果不满足资源质量；逐瓶审计冷启动/预先启动实例均超时，撤回。O007 等待完整旧编号表或维护者接受替代证据。新增 24 请求（18 个运行器 Passed 含 2 次仅启动、5 次超时、1 次探针自身失败），全部自有实例清理，累计 48；没有把运行器 Passed 等同五主题验收通过，保持 Draft / Refs #183。
+## 社区批次 Q010 与组合补搜
 
-## Q003 检查点政策与比较历史（2026-10-03）
+现行组合入口按共享节点与时间准入，执行期间在每批提交边界处理内存预约、回收和停止。原包 SearchOnly、Beam 组合检查及真实 CLR 合同的结果、失败与未验证项见 [历史卷 20](archive/testing/volume-20.md#社区批次-q010-与组合补搜)。
 
-检查点恢复四个搜索开关并严格比较资源与搜索政策。`CheckpointTool self-test` 59 项合同及原生 `REPLAY-BOUNDARY-CONTRACT` 的历史来源见 [Q003 验收记录](issues/q003-checkpoint-policy-20261003.md)；完整阶段记录保留于 [合并前测试矩阵](https://github.com/jojomiseta-hub/CombatSolver/blob/41e6124b5d9f5b79269d03987e92a81d4adb55b2/docs/TEST_MATRIX.md#q003-检查点政策与比较2026-10-03)。
+## 0.50.1 智能药水机会成本
 
-`e9f66da0` 的 O010 T2 三对同根、同政策、同预算原生对照均战损45→32、锻造祝福1、计划外重算0；平均总搜索11.379→11.396秒（+0.15%），仅该哨兵未发现超出同批波动的稳定明显增加。相邻T4原生战损32，开战/首可操作恢复通过；T1战损44/零药水仍缺完整资源比较。O009 T1战损91并触发瓶中精灵，缺同版未改开局基线；O006–O008材料与质量缺口仍未解决。
+终局单药／双药低收益拒绝与 Force、奖励抵扣、原价高收益哨兵由 `SMART-OPENING-POTION-ADMISSION` 覆盖；跨成员比较由 `python -B tools/testing/checks/BeamWidthPortfolioChecks/run.py` 覆盖（118项通过）。原生 runId `d9629992ac31423586c7465510c18f6d` Passed（23.63秒，含建局），实例已清理。失败基线、同根材料与未验证范围见[问题记录](issues/potion-opportunity-20261006.md)。
 
-三次采样后实例清理失败均经既有StopInstance恢复，未重跑样本；全部六个实例已清理，临时基线checkout删除被自动审批拦截而保留。十阶段累计24/26请求，剩余2；整批未完成，保持Draft / Refs #183。上游0.49.2合并后的检查结果单独记录，历史整场和性能数字不冒充本次重跑。
+## 社区批次 Q015：路线保留
 
-## 移动运行库内存回收（2026-10-04）
+贡献者五主题的同根短搜、原生部署、固定哨兵及失败记录见[Q015 记录](issues/q015-route-quality.md)。维护的开战政策输入为 [High](../coverage/fixtures/search/damaging-continuation-replay-policy.json)、[Medium](../coverage/fixtures/search/damaging-continuation-medium-replay-policy.json) 与 [Force](../coverage/fixtures/search/damaging-continuation-forced-dexterity-policy.json)，原生部署使用 Instant／0 秒，断言计划外重算。本机最终整合收窄破盾收尾资格，O068 保持 3 战损、0 药、T4，独立哨兵保持 5 战损、1 药、T4，均完整部署、零重算；其余贡献者旧结果保留原验证范围。旧报告默认手牌上限兼容合同通过，详细同根对照见[本机验证](archive/testing/pr-integration-20261007.md)。
 
-`portable-runtime` 先在原回收逻辑复现 Mono 同形的 API 拒绝，修复后 5 项 Passed。直接链接生产代码并注入被拒绝的按类型 GC 信息接口，验证一次检测后不再调用、普通检查点及不可分割提交续行、取消、自动及手动真实阻塞回收、不可用暂停观测和其他异常继续传播。
+## 社区批次 Q013 同根哨兵与部署夹具
 
-```bash
-dotnet run --project tools/testing/checks/CombatSolver.GcPolicyChecks/CombatSolver.GcPolicyChecks.csproj -c Release -- portable-runtime
+Q013（O056–O060，#220 / PR #228）的五条同根 `SearchOnly` 质量界夹具与两条 `DeploySolver` 夹具位于 `coverage/fixtures/regressions/community/q013-*.json`；逐条结果、失败基线与未验证项见 `coverage/evidence/test-evidence.json` 的 `Q013-*` 条目与[认领者记录](community/drafts/2026-10-06/Q013-claim-reproduction.md)。夹具依赖不入库的玩家原包 ZIP，故本页不提供行首可执行命令（与 Q010 同口径，矩阵可复跑清单条数不变）：复跑时把夹具 JSON 字段逐个传给 `tools/testing/run-unattended-test.ps1`，显式带 `-Sts2GameRoot` / `-RitsuWorkshopRoot` / `-CleanupInstanceOnExit`，判定以 `result.json.status` 为准（带实例清理时 launcher 退出码 1 不代表失败）。
+
+认领提交未改 `src`（`git diff --name-only 0d290fbe 0143d82f -- src` 为空），七条夹具在基点 `0d290fbe` 上按夹具本体全部 Passed；界锁各主题当时的实际产出，不构成改良值达标声明（O056/O057/O059 未达包内改良值，O060 默认预算下终值 35～43 摆动，O058 缺口在同一次请求内后续搜索的运行态）。合并 `6031debd` 后（`89798a78` 把 `max_hand_size` 写进续用指纹）七条全部在 `native_replay_events` 报 `restore_mismatch` 而未进入搜索，属旧包容兼容性边界，逐条 runId 与包内取证见[调查流水](archive/community/q013-claim-reproduction-20261006.md)；PR #227 的默认手牌上限兼容已进入整合，本机 O056 原生恢复通过，但历史质量界 42 未达成；其他六条夹具在最终整合上未复跑，见本页整合验证。
+
+## 开局药水补搜准入
+
+固定两槽满栏，使用原版奖励 RNG 捕获确定掉药／不掉药的搜索根。`SMART-OPENING-POTION-ADMISSION` 覆盖低损共同准入与换药抵扣，`SMART-OPENING-POTION-VALUE` 覆盖原价省血边界。失败基线、最终结果与验证范围见 [历史卷 20](archive/testing/volume-20.md#开局药水补搜准入)。
+
+```text
+pwsh -NoProfile -File tools/testing/run-unattended-test.ps1 -ScenarioId SMART-OPENING-POTION-ADMISSION -CharacterId SILENT -EncounterId FUZZY_WURM_CRAWLER_WEAK -EnemyCurrentHp 1000 -EnableNoGcRegionForTest 0 -TimeoutSeconds 120 -CleanupInstanceOnExit
+./tools/testing/run-unattended-test.sh --scenario-id SMART-OPENING-POTION-ADMISSION --character-id SILENT --encounter-id FUZZY_WURM_CRAWLER_WEAK --enemy-current-hp 1000 --enable-no-gc-region-for-test 0 --timeout-seconds 120 --cleanup-instance-on-exit
 ```
 
-桌面实际 CLR 相邻合同 `default-commit` 2 项、`checkpoint` 1 项、`diagnostic-failure` 8 项、`recovery-lifecycle` 3 项 Passed。模式均由同一 GC 工具运行，方法见[工具入口](../tools/testing/checks/CombatSolver.GcPolicyChecks/README.md)。
-
-原生 `B013-DEFAULT-GC-LIMIT` Passed，runId `ac4ee495b5ad48158c0d709a49b0abd2`，22.883 秒；包含限额、真实回收续行、退出和暂停观测缺失时的工作量累计。PowerShell 入口为 `tools/testing/run-unattended-test.ps1 -ScenarioId B013-DEFAULT-GC-LIMIT -EnemyCurrentHp 1000 -TimeoutSeconds 120 -CleanupInstanceOnExit`；Bash 对应 `tools/testing/run-unattended-test.sh --scenario-id B013-DEFAULT-GC-LIMIT --enemy-current-hp 1000 --timeout-seconds 120 --cleanup-instance-on-exit`。实例已删除。
-
-原 Android 设备与原包整场回放未执行；来源、失败基线及验证范围见[开发记录](archive/development/volume-15.md#移动运行库内存回收2026-10-04)。
+将 ScenarioId 改为 `SMART-OPENING-POTION-VALUE` 可单独执行原价省血边界。
 
 ## 0.49.1 日志站硬逻辑（2026-10-04）
 
 强制结束回合选牌、群体 Power、死亡金币回调、延迟能量／等离子球、开局小刀、回合末自动出牌、行动意图、资源隔离、反应格挡和界面归属的原生差分见 [逐类验收](issues/0.49.1-hardbugs-20261004.md#原生验收证据)。该记录保留失败基线、runId、复跑入口、第三方边界及未验证项；生产部署合同包含增量验证和计划外重算断言。
 
-## 0.49.2 内容性 Mod 失败分类（2026-10-04）
-
-`CONTENT-MOD-FAILURES` 与 `VerifyPredictionFailureBoundaries` 同进程 Passed，runId `849fb38580474f7881c05d113beef5d3`，24.505 秒。合同直接调用五个回合阶段、三个金币回调与计算型变量的生产拒绝入口，断言确认的第三方来源、原生回调保持未执行、包装异常、eng/zhs/zht 的 Mod 名称与方括号转义、四类失败账本仅记录暂未适配且不触发上传。原版、共享计算框架与运行库失败继续提示诊断上传；平台接口错误保留主失败类别。
-
-```powershell
-pwsh -NoProfile -File tools\testing\run-unattended-test.ps1 -ScenarioId CONTENT-MOD-FAILURES -EnemyCurrentHp 1000 -VerifyPredictionFailureBoundaries -TimeoutSeconds 120 -CleanupInstanceOnExit
-```
-
-```bash
-./tools/testing/run-unattended-test.sh --scenario-id CONTENT-MOD-FAILURES --enemy-current-hp 1000 --verify-prediction-failure-boundaries --timeout-seconds 120 --cleanup-instance-on-exit
-```
-
-来源与验证边界见 [开发历史卷 14](archive/development/volume-14.md)。最终行为源码在版本同步前通过；后续只改版本元数据和文档，采用最终 Release 构建。测试启动器已删除实例，未执行可见 Steam 弹窗排版验收或第三方原包整场回放。
+0.49.2 内容性 Mod 失败分类的原生合同、完整命令及未验证范围见[历史卷19](archive/testing/volume-19.md)。
 
 ## 0.49.1 内存提交回归（2026-10-04）
 
@@ -195,3 +188,12 @@ pwsh -NoProfile -File tools\testing\run-unattended-test.ps1 -ScenarioId RADIANT-
 L0：原生回复审计工具迁入tools/inspection后构建和真实DLL扫描通过。CoverageCatalog重新生成3035项目录，状态字段未分类为0；`--verify-state-writes`仍因既有InfusedCore.AfterSideTurnStart缺运行证据失败（1项）。PowerShell结构检查247文件通过，工具检查290文件/37项目通过，文档427文件/1635链接及覆盖目录检查通过。额外Bash结构检查因运行耗时停止，未完成；两平台脚本静态语法检查通过。
 
 范围：本轮没有重跑作者长预算全根性能筛查，没有验证低内存玩家宿主、原生整场部署或可见Steam性能；原作者失败与未验证项保留在所属报告。
+
+
+## 性能研究分支
+
+既有组件、药水、魂枢及未达标原型的合同与历史结果见[历史卷18](archive/testing/volume-18.md)。PR #207最新上游整合、逐次ABBA、23根品质回归及NoGC波动/超时限制见[当前验收](performance/pr207-upstream-0494-integration-20261005.md)。
+
+## 手牌上限状态一致性（PR #224）
+
+原版根／Fork 合同与贡献者的动态上限及耗时证据见[历史卷21](archive/testing/volume-21.md#手牌上限状态一致性pr-224)。

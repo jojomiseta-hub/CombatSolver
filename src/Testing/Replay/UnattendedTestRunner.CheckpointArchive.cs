@@ -54,6 +54,10 @@ internal sealed partial class UnattendedTestRunner
             throw new InvalidDataException("missing_native_event_recording");
         _writer.ReplayVerification["historySource"] = HasNativeRecording ? "native_events" : "legacy_checkpoint_fields";
         ResolveCheckpointPolicy();
+        if (_checkpointImport["resolvedPolicy"]?["profile"] is JsonObject recordedProfile)
+            _protocolHost.ApplyRecordedSearchProfile(
+                recordedProfile.Deserialize<SolverSearchProfile>(UnattendedTestFiles.JsonOptions)
+                ?? throw new InvalidDataException("missing_recorded_search_profile"));
         JsonObject input = JsonSerializer.SerializeToNode(_request, UnattendedTestFiles.JsonOptions)!.AsObject();
         foreach ((string key, JsonNode? value) in _checkpointImport["request"]!.AsObject())
             input[key] = value?.DeepClone();
@@ -120,6 +124,7 @@ internal sealed partial class UnattendedTestRunner
         // Archives recorded before the ignore switch existed considered long-term rewards.
         settings["ignoreLongTermRewards"] = recorded["ignoreLongTermRewards"]?.DeepClone()
             ?? JsonSerializer.SerializeToNode(false, UnattendedTestFiles.JsonOptions);
+        // Require the recorded switches so local defaults cannot change a comparison.
         foreach (string name in new[] { "potionDirectives", "actTransitionBossHpStrategy", "finalBossHpStrategy", "acceptableBattleHpLoss", "stopAtAcceptableBattleHpLoss", "searchMaxDegreeOfParallelism",
                      "predictPotionReward", "useNoveltyPortfolio", "useBeamWidthPortfolio", "useEarlyTurnExploration" })
             settings[name] = recorded[name]?.DeepClone() ?? throw new InvalidDataException($"missing_policy:{name}");

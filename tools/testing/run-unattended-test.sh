@@ -70,6 +70,7 @@ add_option pre-combat-intervening-map-points-json "" string none
 add_option replay-state-path "" string none
 add_option checkpoint-archive-path "" string raw_string
 add_option checkpoint-selector "start" string raw_string
+add_option recorded-plan-retention-step-for-test -1 int nonnegative_int
 add_option replay-mode "RestoreOnly" string raw_string "Preflight|RestoreOnly|ReplayRecorded|SearchOnly|DeploySolver|SessionStart"
 add_option replay-policy-override-path "" string raw_string
 add_option development-strategy-assembly-path "" string optional_string
@@ -166,6 +167,7 @@ for name in \
     expected-initial-node-limit-snapshots-released-at-least \
     expected-initial-choice-branches-evaluated-at-least \
     expected-initial-executable-action-count-at-least \
+    expected-initial-unavoidable-hp-lost \
     expected-initial-sold-hp expected-initial-sold-hp-at-most \
     expected-initial-sold-hp-branches-pruned-at-least \
     expected-initial-death-save-relic-hp \
@@ -551,8 +553,9 @@ copy_interactive_profile_once() {
         if [[ -d "$interactive_data_dir/steam" ]]; then
             while IFS= read -r -d '' candidate; do
                 if [[ -f "$candidate/settings.save" ]]; then
+                    [[ -z "$account_dir" ]] || runtime_error \
+                        "multiple Steam profiles contain settings.save below $interactive_data_dir; provide a default/1 profile to select the test account"
                     account_dir="$candidate"
-                    break
                 fi
             done < <(find "$interactive_data_dir/steam" -mindepth 1 -maxdepth 1 -type d -print0 | sort -z)
         fi

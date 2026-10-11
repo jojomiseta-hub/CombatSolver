@@ -35,21 +35,12 @@ internal static partial class CombatSearchCoordinator
         SearchPassContext context, SolverPotionPolicy? potionPolicyOverride)
     {
         SearchPolicySnapshot policy = context.Policy;
-        // Broad known-source eligibility permits pruning after a victory is found;
-        // it does not establish that a speculative plan search is cheap enough to
-        // run before the primary member. Keep the existing certified-root schedule.
-        if (!context.Root.CanCertifyRemainingHealing
-            || !policy.UseBeamWidthPortfolio
-            || policy.UseNoveltyPortfolio || policy.IncludeTurnSetup
-            || policy.PortfolioExperiment != null || policy.DevelopmentStrategy != null
-            || policy.DisableRefinementIncumbentForTesting || policy.DisableOpeningPlanIncumbentForTesting
-            || policy.EffectiveHasGrowthTargets || policy.RelicTargets.Count != 0
-            || policy.PotionStrategy.HasForcedDirectives
-            || (potionPolicyOverride ?? policy.PotionPolicy)
-                is not (SolverPotionPolicy.Disabled or SolverPotionPolicy.Smart))
+        if (!CanRunOpeningPlanIncumbent(context.Root, policy, potionPolicyOverride))
             return null;
         IReadOnlyList<PlanCommitment> plans = DiscoverOpeningPlanCommitments(context);
-        if (plans.Count == 0 || plans.Any(plan => plan.UsesPotion))
+        if (plans.Count == 0)
+            return TryRunNarrowOpeningIncumbent(context, potionPolicyOverride);
+        if (plans.Any(plan => plan.UsesPotion))
             return null;
         policy.Diagnostics.Info("[CombatSolver/Test] EARLY_OPENING_PLAN_INCUMBENT start");
         SolverResult? result = RunOpeningPlans(context, null, plans);
@@ -61,6 +52,51 @@ internal static partial class CombatSearchCoordinator
             return result;
         }
         return null;
+    }
+
+    internal static bool CanRunOpeningPlanIncumbent(CombatRootSnapshot root,
+        SearchPolicySnapshot policy, SolverPotionPolicy? potionPolicyOverride)
+    {
+        // Broad known-source eligibility permits pruning after a victory is found;
+        // it does not establish that a speculative plan search is cheap enough to
+        // run before the primary member. Keep the existing certified-root schedule.
+        if (!root.CanCertifyRemainingHealing
+            || !policy.UseBeamWidthPortfolio
+            || policy.UseNoveltyPortfolio || policy.IncludeTurnSetup
+            || policy.PortfolioExperiment != null || policy.DevelopmentStrategy != null
+            || policy.DisableRefinementIncumbentForTesting || policy.DisableOpeningPlanIncumbentForTesting
+            || policy.EffectiveHasGrowthTargets
+            || policy.RelicTargets.Count != 0 && !CombatBeamSolver.CanUseStrictHpRelicBound(root, policy)
+            || policy.PotionStrategy.HasForcedDirectives
+            || (potionPolicyOverride ?? policy.PotionPolicy)
+                is not (SolverPotionPolicy.Disabled or SolverPotionPolicy.Smart))
+            return false;
+        return true;
+    }
+
+    private static SolverResult? TryRunNarrowOpeningIncumbent(
+        SearchPassContext context, SolverPotionPolicy? potionPolicyOverride)
+    {
+        if (!context.Root.UsesComponentHealingCertificate
+            || context.Policy.FixedBudget || context.Profile.BeamWidth < 64
+            || context.Profile.SoftTimeBudgetMilliseconds < 30_000)
+            return null;
+        SearchBudgetWindow window = context.Budget.RequestWindow(context.Profile);
+        if (!window.CanStart(7_000))
+            return null;
+        context.PlanDiscovery.NarrowOpeningIncumbentAttempted = true;
+        SolverSearchProfile pilot = window.Limit(context.Profile, 60_000, 20_000, 2_000)
+            with { BeamWidth = Math.Max(8, context.Profile.BeamWidth / 16) };
+        SolverResult result = new CombatBeamSolver(context.Root, context.DisplayNames,
+            context.BattleDamage, context.Policy, context.CancellationToken, context.ProgressCallback,
+            pilot, potionPolicyOverride: SolverPotionPolicy.Disabled,
+            directSearchPurpose: DirectSearchPurpose.NarrowOpeningIncumbent).Solve();
+        bool qualified = BuildRefinementPrimarySearchIncumbent(context.Root, context.Policy,
+            potionPolicyOverride, result) != null;
+        context.Policy.Diagnostics.Info($"[CombatSolver/Test] NARROW_OPENING_INCUMBENT "
+            + $"qualified={qualified} won={IsCompleteVictory(result)} hp_lost={result.ProjectedBattleHpLost} "
+            + $"beam={pilot.BeamWidth} expanded={result.ExpandedNodes} elapsed_ms={result.Elapsed.TotalMilliseconds:F1}");
+        return qualified ? result : null;
     }
 
     private static SolverResult? RunOpeningPlans(
@@ -105,7 +141,7 @@ internal static partial class CombatSearchCoordinator
                             : SolverPotionPolicy.Disabled,
                         plan.UsesPotion ? 1 : 0,
                         AllowUnsatisfiedPotion: true),
-                    out SolverResult? candidate))
+                    out SolverResult? candidate, selected))
                 break;
             attempted++;
             if (candidate == null)
@@ -220,7 +256,7 @@ internal static partial class CombatSearchCoordinator
                     PotionPolicyOverride: null,
                     MaximumPotionUses: null,
                     AllowUnsatisfiedPotion: false),
-                out SolverResult? memberResult))
+                out SolverResult? memberResult, baseline))
             return baseline;
         SolverResult candidate = memberResult!;
         if (candidate.ResultScope != SolverResultScope.SearchCompletion)
@@ -241,7 +277,8 @@ internal static partial class CombatSearchCoordinator
         FrontierContinuationScheduler scheduler,
         PlanCommitment plan,
         PlanMemberExecution execution,
-        out SolverResult? candidate)
+        out SolverResult? candidate,
+        SolverResult? incumbent = null)
     {
         SearchBudgetWindow window = context.Budget.RequestWindow(context.Profile);
         if (!window.CanStart(7_000))
@@ -261,12 +298,22 @@ internal static partial class CombatSearchCoordinator
             execution.PotionPolicyOverride, execution.MaximumPotionUses, null)
         {
             Commitment = plan,
+            PrimaryIncumbent = incumbent is null ? null : BuildPlanMemberPrimaryIncumbent(
+                context.Root, context.Policy, execution.PotionPolicyOverride, incumbent),
         };
         candidate = execution.AllowUnsatisfiedPotion
             ? scheduler.DispatchOptional(request, "PlanCommitment")
             : scheduler.Dispatch(request);
         return true;
     }
+
+    internal static PrimarySearchIncumbent? BuildPlanMemberPrimaryIncumbent(
+        CombatRootSnapshot root, SearchPolicySnapshot policy,
+        SolverPotionPolicy? potionPolicyOverride, SolverResult incumbent)
+        => root.UsesComponentHealingCertificate
+            && policy.TheftPolicy != SolverTheftPolicy.PreserveResources
+                ? BuildRefinementPrimarySearchIncumbent(root, policy, potionPolicyOverride, incumbent)
+                : null;
 
     private static IReadOnlyList<PlanCommitment> DiscoverOpeningPlanCommitments(
         SearchPassContext context)

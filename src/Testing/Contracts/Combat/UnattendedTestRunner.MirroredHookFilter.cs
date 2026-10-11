@@ -28,10 +28,19 @@ internal sealed partial class UnattendedTestRunner
             if (mask == MirroredHookMask.All)
                 continue;
             string name = mask.ToString();
+            // Shared bits certify a family, rather than a method with the bit's name.
+            string[] hookNames = mask switch
+            {
+                MirroredHookMask.GoldCallbacks => [nameof(AbstractModel.ModifyGoldGained),
+                    nameof(AbstractModel.AfterModifyingGoldGained), nameof(AbstractModel.AfterGoldGained)],
+                MirroredHookMask.ExtraTurnCallbacks => [nameof(AbstractModel.ShouldTakeExtraTurn),
+                    nameof(AbstractModel.AfterTakingExtraTurn)],
+                _ => [name],
+            };
             AbstractModel[] expected = models.Where(model =>
                 model.GetType().Assembly != typeof(AbstractModel).Assembly
                 || model.GetType().GetMethods(BindingFlags.Instance | BindingFlags.Public)
-                    .Any(method => method.Name == name
+                    .Any(method => hookNames.Contains(method.Name)
                         && method.DeclaringType != typeof(AbstractModel)
                         && method.GetBaseDefinition().DeclaringType == typeof(AbstractModel)))
                 .ToArray();

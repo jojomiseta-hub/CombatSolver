@@ -39,6 +39,16 @@ internal sealed partial class UnattendedTestRunner
             bool expectedCardPlayed = request.ExpectedPlayedCardId == null;
             bool expectedPotionUsed = request.ExpectedUsedPotionId == null;
             bool expectedPlayerPowerObserved = request.ExpectedObservedPlayerPowerId == null;
+            if (request.ScenarioId == "CHECKPOINT-PROFILE-CONTRACT")
+            {
+                runner.AssertCheckpointProfileContract(combatState);
+                return Observation(combatEnded: false);
+            }
+            if (request.ScenarioId == "CHECKPOINT-RECORDED-PLAN-PATH")
+            {
+                await runner.PrepareRecordedPlanDeploymentAsync(combatState, deploy: false);
+                return Observation(combatEnded: false);
+            }
             if (request.ScenarioId == "CALCULATED-HISTORY-FREEZE")
             {
                 await runner.AssertCalculatedHistoryFreezeAsync(combatState, player);
@@ -61,6 +71,11 @@ internal sealed partial class UnattendedTestRunner
                 await runner.AssertRefinementIncumbentAsync(combatState, player);
                 if (request.ScenarioId == "NATIVE-HEALING-ALL-ENCOUNTERS")
                     await runner.AssertKnownHealingPolicyAsync(combatState, player);
+                return Observation(combatEnded: false);
+            }
+            if (request.ScenarioId == "PRIMARY-INCUMBENT-REUSE")
+            {
+                await runner.AssertPrimaryIncumbentReuseAsync(combatState, player);
                 return Observation(combatEnded: false);
             }
             if (request.ScenarioId == "KNOWN-HEALING-OPENING")
@@ -937,6 +952,11 @@ internal sealed partial class UnattendedTestRunner
                 await runner.AssertDirgeReplayResourcesAsync(combatState, player);
                 return Observation(combatEnded: false);
             }
+            if (request.ScenarioId == "EXTRA-TURN-MIRROR-ORDER")
+            {
+                await runner.AssertExtraTurnMirrorsAsync(combatState, player);
+                return Observation(combatEnded: false);
+            }
             if (request.ScenarioId is "TURN-SETUP-DELAYED-ENERGY" or "PAELS-EYE-AUTOPOST-ORDER")
             {
                 await runner.AssertTurnBoundaryOrderAsync(combatState, player);
@@ -960,6 +980,17 @@ internal sealed partial class UnattendedTestRunner
             if (request.ScenarioId == "NATIVE-CHOOSE-OPEN-GATE")
             {
                 await runner.AssertNativeChooseOpenGateAsync(combatState, player);
+                return Observation(combatEnded: false);
+            }
+            if (request.ScenarioId == "SMART-POTION-AUDIT-BUDGET")
+            {
+                await runner.AssertSmartPotionAuditBudgetAsync(combatState, player);
+                return Observation(combatEnded: false);
+            }
+            if (request.ScenarioId is "SMART-OPENING-POTION-ADMISSION" or "SMART-OPENING-POTION-VALUE")
+            {
+                await runner.AssertSmartOpeningPotionAdmissionAsync(combatState, player,
+                    highLossOnly: request.ScenarioId == "SMART-OPENING-POTION-VALUE");
                 return Observation(combatEnded: false);
             }
             if (request.ScenarioId == "FIXED-PREFIX-POTION-POLICY")
@@ -1058,6 +1089,34 @@ internal sealed partial class UnattendedTestRunner
             {
                 runner.SetStage("opening_discard_choice_value");
                 await runner.AssertOpeningDiscardChoiceValueAsync(combatState, player);
+                return Observation(combatEnded: false);
+            }
+
+            if (request.ScenarioId == "ZERO-ALLOWANCE-RELIC-INCUMBENT")
+            {
+                runner.SetStage("zero_allowance_relic_incumbent");
+                await runner.AssertZeroAllowanceRelicIncumbentAsync(combatState, player);
+                return Observation(combatEnded: false);
+            }
+
+            if (request.ScenarioId == "POTION-COST-INCUMBENT")
+            {
+                runner.SetStage("potion_cost_incumbent");
+                await runner.AssertPotionCostIncumbentAsync(combatState, player);
+                return Observation(combatEnded: false);
+            }
+
+            if (request.ScenarioId == "COMPONENT-SMART-BOUND")
+            {
+                runner.SetStage("component_smart_bound");
+                await runner.AssertComponentSmartBoundAsync(combatState, player);
+                return Observation(combatEnded: false);
+            }
+
+            if (request.ScenarioId == "COMPONENT-HEALING-BOUND")
+            {
+                runner.SetStage("component_healing_bound");
+                await runner.AssertComponentHealingAsync(combatState, player);
                 return Observation(combatEnded: false);
             }
 
@@ -1396,6 +1455,8 @@ internal sealed partial class UnattendedTestRunner
             if (SolverController.LastTurnSetupResultForTesting == null
                 && !request.PreserveNativeCombatStateForTest && !runner.HasNativeRecording)
                 SolverController.BeginCombat(combatState);
+            if (request.ScenarioId == "CHECKPOINT-RECORDED-PLAN-DEPLOYMENT")
+                await runner.PrepareRecordedPlanDeploymentAsync(combatState);
             if (request.TheftPolicyForTest is { } theftPolicy)
                 SolverController.SetTheftPolicyForTesting(combatState, theftPolicy);
             SolverController.SetStopFullAutoOnCombatEnd(false, persist: false);
@@ -1904,6 +1965,8 @@ internal sealed partial class UnattendedTestRunner
                 && !stoppedAfterWorseRecalculationPause
                 && !stoppedAfterLiveRiskPause
                 && !stoppedAfterExpectedUnexpectedReplan;
+            if (request.ScenarioId == "CHECKPOINT-RECORDED-PLAN-DEPLOYMENT")
+                runner.AssertRecordedPlanDeployment(combatState);
             return Observation(combatEnded);
 
             ExecutionOutcome Observation(bool combatEnded, bool initialSearchHeld = false)
