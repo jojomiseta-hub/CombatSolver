@@ -429,8 +429,7 @@ internal sealed partial class CombatBeamSolver
         Func<SearchNode, StandPatEvaluation> _evaluateStandPat,
         Action<IEnumerable<SearchNode>>? _prepareStandPat = null,
         DevelopmentSearchStrategy? _developmentStrategy = null,
-        PlanCommitment? _planCommitment = null,
-        bool _hasFixedPrefix = false)
+        PlanCommitment? _planCommitment = null)
     {
         private void ForEachRetentionIndex(
             int count,
@@ -1004,9 +1003,7 @@ internal sealed partial class CombatBeamSolver
                             .ToList();
                         int actionsSinceChoice = optionNodes.Min(ActionsSinceRetainedRoutingChoice);
                         SearchNode? optionLeader;
-                        if (actionsSinceChoice == 0
-                            && (_profile.BaseScoreOnly || _hasFixedPrefix
-                                || family[0].Key.Effect != PlanChoiceEffect.MoveToDrawTop))
+                        if (actionsSinceChoice == 0)
                         {
                             optionLeader = optionGroup
                                 .OrderBy(pair => RoutingParentRetentionRank(pair.Value))
@@ -1015,11 +1012,8 @@ internal sealed partial class CombatBeamSolver
                                 .Value
                                 .MaxBy(BeamRankScore);
                         }
-                        else if (actionsSinceChoice <= 1)
+                        else if (actionsSinceChoice == 1)
                         {
-                            // Draw-top effects need a setup witness until the selected card
-                            // is drawn. Keep independent base-score and fixed-prefix searches
-                            // on their original parent anchors; other effects are unchanged.
                             optionLeader = FindBestSetup(optionNodes);
                         }
                         else

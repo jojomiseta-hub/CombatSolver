@@ -142,8 +142,7 @@ internal sealed partial class CombatBeamSolver(
         EvaluateStandPat,
         PrepareStandPatProbes,
         _developmentStrategy,
-        _planCommitment,
-        _fixedPrefixActions.Count > 0);
+        _planCommitment);
     private FinalPlanOrdering? _finalOrdering;
     private FinalPlanOrdering FinalOrdering => _finalOrdering ??= new FinalPlanOrdering(
         _potionPolicy,
